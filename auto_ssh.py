@@ -32,19 +32,15 @@ with open(path, 'wb') as f:
         'Are you sure you want to continue connecting (yes/no)?', 'password:', 'Connection refused'
         , pexpect.TIMEOUT, pexpect.EOF], timeout=5)
 
-    if res == 2:
-        print 'refused,exited'
-        exit(0)
-    if res == 3:
-        print 'Time out ,exited'
-        exit(0)
     if res == 0:
         child.sendline('yes')
         child.expect('password:')
+    elif res != 1:
+        print 'Can not connect'
+        exit(0)
 
     child.sendline(password)
-    res = child.expect(['#', 'Permission denied', pexpect.TIMEOUT], timeout=10)
-
+    res = child.expect(['#', 'Permission denied', pexpect.TIMEOUT, pexpect.EOF], timeout=10)
     if res == 1:
         print 'Permission denied'
         exit(0)
